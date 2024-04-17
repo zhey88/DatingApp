@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers;
 
+//Allow us to send our request to the client to hit the controller below and 
+//HttpGet 
 [ApiController]
 [Route("api/[controller]")]  //  /api/users
 public class UsersController : ControllerBase
@@ -16,7 +18,7 @@ public class UsersController : ControllerBase
         _context = context;
     }
 
-    //Http response to get all the users in a list 
+    //Http request to get all the users in a list 
     [HttpGet] 
     public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
     {
@@ -26,7 +28,7 @@ public class UsersController : ControllerBase
         return users;
     }
 
-    //Http response to get a single user of that id
+    //Http request to get a single user of that id
     //Get the id of the user from the http address
     //Asyn allows the server to handle multiple requests at the same time
     [HttpGet("{id}")]  // /api/users/2

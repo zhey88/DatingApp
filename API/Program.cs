@@ -14,14 +14,15 @@ builder.Services.AddDbContext<DataContext>(opt=>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+//To add the Cors header to get the user data in our database
+//need to modify our request on its way back to client and add the header
+builder.Services.AddCors();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
+//Basically, with this, we are allowing the http request to access to the dabase from the 4200
+app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
 app.MapControllers();
 
 app.Run();
