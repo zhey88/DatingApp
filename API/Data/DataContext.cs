@@ -18,4 +18,9 @@ public class DataContext : DbContext
     //our database when it is created
     //Now we got the dbset of app user and we got our data context class, we need to tell our applicaiton in the program class
     public DbSet<AppUser> Users { get; set; }
+
+    internal string CreateToken(AppUser user)
+    {
+        throw new NotImplementedException();
+    }
 }
