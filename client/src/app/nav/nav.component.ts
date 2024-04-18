@@ -37,9 +37,7 @@ export class NavComponent implements OnInit{
   login(){
     this.accountService.login(this.model).subscribe({
       //Navigate to member page after login
-      next: () => this.router.navigateByUrl('/members'),
-      //Use of the toastr to display a pop out erro message
-      error: error=> this.toastr.error(error.error)
+      next: () => this.router.navigateByUrl('/members')
     })
   }
 

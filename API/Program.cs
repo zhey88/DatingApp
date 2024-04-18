@@ -1,22 +1,21 @@
-using System.Text;
 using API.Extensions;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using API.Errors;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-
 //To add the Cors header to get the user data in our database
 //need to modify our request on its way back to client and add the header
 //builder.Services.AddCors();
-
 //Call the services extensions in the ApplicationServices and IdentityServices
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
 
 var app = builder.Build();
+
+//exception handling has to go at the very top of the HTTP request pipeline
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 //Basically, with this, we are allowing the http request to access to the dabase from the 4200

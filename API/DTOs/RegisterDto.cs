@@ -11,6 +11,8 @@ namespace API.DTOs
         [Required]
         public string Username {get; set;}
         [Required]
+        //Set the max length of the password to be 8 and min length to be 4
+        [StringLength(8, MinimumLength = 4)]
         public string Password {get; set;}
     }
 }
