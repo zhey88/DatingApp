@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { AccountService } from '../_services/account.service';
 import { Observable, of } from 'rxjs';
 import { User } from '../_models/user';
+import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-nav',
@@ -14,7 +16,7 @@ export class NavComponent implements OnInit{
 
 
   //Make it to public so html file could use the currentUser$ directly
-  constructor(public accountService: AccountService) { }
+  constructor(public accountService: AccountService, private router: Router, private toastr:ToastrService) { }
 
   ngOnInit(): void {
   }
@@ -34,10 +36,10 @@ export class NavComponent implements OnInit{
   //For http request, it is not essential to unsubscribe 
   login(){
     this.accountService.login(this.model).subscribe({
-      next: response => {
-        console.log(response);
-      },
-      error: error=> console.log(error)
+      //Navigate to member page after login
+      next: () => this.router.navigateByUrl('/members'),
+      //Use of the toastr to display a pop out erro message
+      error: error=> this.toastr.error(error.error)
     })
   }
 
@@ -45,6 +47,8 @@ export class NavComponent implements OnInit{
   logout(){
     //Call the method in accountService to Remove the user info from the localStorage 
     this.accountService.logout();
+    //Navigate to home page after login
+    this.router.navigateByUrl('/');
   }
 
 }
