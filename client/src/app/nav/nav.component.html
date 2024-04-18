@@ -1,0 +1,49 @@
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#">Dating App</a>
+
+        <!--Use of ngIf conditionals to remove the links if the user has not logged in
+            Use of async pipe function to check if there is a user logged in-->
+        <ul class="navbar-nav me-auto mb-2 mb-md-0" *ngIf="accountService.currentUser$ | async">
+          <li class="nav-item">
+            <a class="nav-link " href="#">Matches</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Lists</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link ">Messages</a>
+          </li>
+        </ul>
+
+        <!--Use of ngIf conditionals to remove the links if the user has not logged in
+            Use of async pipe function to check if there is a user logged in-->
+        <div class="dropdown" *ngIf="accountService.currentUser$ | async" dropdown>
+          <!--text-decoration-none to remove the underline of the text-->
+          <a class="dropdown-toggle text-light text-decoration-none" dropdownToggle>Welcome user</a>
+          <div class="dropdown-menu" *dropdownMenu="">
+            <a class="dropdown-item">Edit Profile</a>
+            <!--Call the logout method in the ts file -->
+            <a class="dropdown-item" (click)="logout()">Logout</a>
+          </div>
+            
+        </div>
+        <!--Make it a template form, call the login method in ts file and turn off autocomplete-->
+        <!--Use of 2 way binding to get the username.
+            Show the form when the user is not logged in yet
+            Use of async pipe function to check if there is a user logged in-->
+        <form *ngIf="!(accountService.currentUser$ | async)" #loginForm="ngForm" class="d-flex" 
+                (ngSubmit)="login()" autocomplete="off">
+          <input 
+                name = "username"
+                [(ngModel)] = "model.username"
+                class="form-control me-2" 
+                type="text" placeholder="Username">
+          <input
+                name = "password"
+                [(ngModel)] = "model.password"
+                class="form-control me-2" type="password" placeholder="Password">
+          <button class="btn btn-outline-success" type="submit">Login</button>
+        </form>
+      </div>
+  </nav>
