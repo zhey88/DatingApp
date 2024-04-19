@@ -24,6 +24,8 @@ namespace API.Helpers
                     //In the MemberDto.cs
                 .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge()));
             CreateMap<Photo, PhotoDto>();  //go from AppUser to MemberDto
+            //We do not need to add any additional configuration here because all the properties are the same
+            CreateMap<MemberUpdateDto, AppUser>(); //map the updatedMember details to the AppUser
         }
     }
 

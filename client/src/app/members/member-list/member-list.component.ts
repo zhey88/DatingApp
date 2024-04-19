@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Member } from '../../_models/member';
 import { MembersService } from '../../_services/members.service';
+import { Observable } from 'rxjs';
 
 
 @Component({
@@ -11,23 +12,14 @@ import { MembersService } from '../../_services/members.service';
 
 export class MemberListComponent implements OnInit {
   //create a class property to store our members in
-  members: Member[] = [];
+  members$: Observable<Member[]> | undefined
 
   //Inject memberService
   constructor(private memberService: MembersService) { }
 
   ngOnInit(): void {
-    //as soon as we activate this root, then when it's initialized, it's going to call the load members
-    this.loadMembers();
+    //get the list of members by calling the getMembers in memberService 
+    this.members$ = this.memberService.getMembers();
   }
 
-  //we need to subscribe the observable 
-  //get a list of members as our response
-  loadMembers() {
-    this.memberService.getMembers().subscribe({
-      //call this argument members, which is going to be passed to this function
-      //let the list of members = members
-      next: members => this.members = members
-    })
-  }
 }

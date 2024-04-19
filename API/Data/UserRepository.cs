@@ -71,6 +71,8 @@ namespace API.Data
         //If it's zero, then it's going to return false as in, nothing was saved into our database
         public async Task<bool> SaveAllAsync()
         {
+            //method is part of the Entity Framework and is used to 
+            //asynchronously save changes made in a database context to the underlying database
             return await _context.SaveChangesAsync() > 0;
         }
 

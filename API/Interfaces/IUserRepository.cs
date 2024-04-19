@@ -6,6 +6,7 @@ namespace API.Interfaces
     public interface IUserRepository
     {
         void Update(AppUser user);
+        //Call the SaveAllAsync method in UserRepository.cs to save updated data into the database
         Task<bool> SaveAllAsync();
         //IEnumerable is a type of list which supports a simple iteration over a collection of a specified type
         //this particular method is just to get our users

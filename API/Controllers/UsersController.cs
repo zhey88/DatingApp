@@ -1,4 +1,5 @@
-﻿using API.Data;
+﻿using System.Security.Claims;
+using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
@@ -48,6 +49,35 @@ namespace API.Controllers
             //to Optimates the database query(stop quering the hash and salt password)
             return await _userRepository.GetMemberAsync(username); 
         }
-    }
+
+         [HttpPut]
+         //we're going to get the username from the token, because the user looks updating their own
+         //profile, we'll have a token because this is going to be an authenticated request.
+         //We don't need the username in the root parameter here, we can get that from the token
+        public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
+        {
+            //we do not need to return anything if the user updated their profile 
+            //because it will be reflected to them directly
+            //use the ? operator to prevent exception if the user is null
+            //claim type Defines constants for the well-known claim types 
+            //that can be assigned to a subject (NameIdentifier)
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //Call the GetUserByUsernameAsync method in the IUserRepository to get the user info
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+            
+            //From our memberupdateDTO into our user when we retrieve this user from our repository
+            //and Entity framework is now tracking this user and any updates to this user are going to be tracked by Entity framework
+            //use of maper to update all of the properties that we pass through in that member
+            //DTO into and overwriting the properties in that user, but it is not saved into the database yet
+            _mapper.Map(memberUpdateDto, user);
+
+            _userRepository.Update(user);
+
+            //To save the data into the database, ensure 
+            if (await _userRepository.SaveAllAsync()) return NoContent();
+            //if theres no changes to the database, return a bad request
+            return BadRequest("Failed to update user");
+        }
+        }
 }
 
