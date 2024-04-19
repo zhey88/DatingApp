@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
 import { User } from '../_models/user';
+import { environment } from '../../environments/environment';
 
 //Same as put this inside the provider array in app.module
 @Injectable({
@@ -10,8 +11,8 @@ import { User } from '../_models/user';
 
 //This service will be responsible for making the HTTP requests from our client to our server
 export class AccountService {
-
-  baseUrl = 'http://localhost:5001/api/';
+  //Get the apiUrl from the environment file
+  baseUrl = environment.apiUrl;
   //The behaviorSubject allows us to give an observable an initial value(we set it to be null)we that 
   //then can use in other components
   private currentUserSource = new BehaviorSubject<User | null>(null);

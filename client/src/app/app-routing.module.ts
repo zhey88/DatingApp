@@ -22,7 +22,7 @@ const routes: Routes = [
     //Use of children routes to navigate to the child components by adding the path to the current address
     children: [
       {path: 'members', component: MemberListComponent},
-      {path: 'members/:id', component: MemberDetailComponent},
+      {path: 'members/:username', component: MemberDetailComponent},
       {path: 'lists', component: ListsComponent},
       {path: 'messages', component: MessagesComponent}
     ]
