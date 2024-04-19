@@ -12,14 +12,18 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, 
                                             IConfiguration config)
     {
-        //build the service to be lifetime for the token
-        services.AddScoped<ITokenService, TokenService>();
         //We need to specify the type of thing we want it to be
         //When we want to get something from database, we need the access to that DB Context Class, use a service
         services.AddDbContext<DataContext>(opt =>
         {
             opt.UseSqlite(config.GetConnectionString("DefaultConnection"));
         });
+        
+        services.AddCors();
+        //build the service to be lifetime for the token
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
         return services;
