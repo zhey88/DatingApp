@@ -34,10 +34,7 @@ export class AccountService {
         //If we have a user and going to save the user info into the local storage
         //change the format of the info from json into string object
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
-          //To let the other components know about the login user informaiton
-          //to update our current user source with the user if we successfully log in.
-          this.currentUserSource.next(user);
+          this.setCurrentUser(user);
         }
       })
     )
@@ -50,19 +47,19 @@ export class AccountService {
         //save the http response in to user
         const user = response;
         if (user) {
-          //save the register user info into the local storage
-          localStorage.setItem('user', JSON.stringify(user));
-          this.currentUserSource.next(user);
+          this.setCurrentUser(user);
         }
-        //return the response
-        return user;
       })
     )
   }
   
 //set this information inside our account service.
   setCurrentUser(user: User) {
+    //To let the other components know about the login user informaiton
+    //to update our current user source with the user if we successfully log in.
     this.currentUserSource.next(user);
+    //save the register user info into the local storage
+    localStorage.setItem('user', JSON.stringify(user));
   }
 
   //Remove the information from the localStorage after we logout 

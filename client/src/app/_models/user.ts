@@ -2,4 +2,6 @@
 export interface User {
     username: string;
     token: string;
+    //For adding the main photo of user to nav bar
+    photoUrl: string;
 }

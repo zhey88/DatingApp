@@ -48,7 +48,9 @@ public class AccountController : BaseApiController
         return new UserDto
         {
             Username = user.UserName,
-            Token = _tokenService.CreateToken(user)
+            Token = _tokenService.CreateToken(user),
+            //For adding the mainphoto of the user to the nav bar
+            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url            
         };
     }
 
@@ -59,6 +61,8 @@ public class AccountController : BaseApiController
         //To get a hold of the userdata 
         //SingleOrDefaultAsync to find the value of the user, or return default value if is empty
         var user = await _context.Users
+        // To include the user photo for adding photo onto the nav bar
+            .Include(p => p.Photos)
             .SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
         //If the user is not in the database, show error message
         if (user == null) return Unauthorized("Invalid username");

@@ -27,7 +27,9 @@
           Use of async pipe function to check if there is a user logged in-->
           <!--We could use as user in async pipe to access to the observable-->
           <div class="dropdown" *ngIf="(accountService.currentUser$ | async) as user" dropdown>
-            <a class="dropdown-toggle text-light text-decoration-none" dropdownToggle>
+            <!--To display the mainphoto of the user-->
+            <img src="{{user.photoUrl || './assets/user.png'}}" alt="user photo">
+            <a class="dropdown-toggle text-light text-decoration-none ms-2" dropdownToggle>
                     Welcome {{user.username | titlecase}}</a>
             <div class="dropdown-menu" *dropdownMenu>
               <a class="dropdown-item" routerLink="/member.edit">Edit Profile</a>

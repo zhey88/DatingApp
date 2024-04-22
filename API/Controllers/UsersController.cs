@@ -1,12 +1,11 @@
 ﻿using System.Security.Claims;
-using API.Data;
 using API.DTOs;
 using API.Entities;
+using API.Extensions;
 using API.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
@@ -18,8 +17,11 @@ namespace API.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        public UsersController(IUserRepository userRepository, IMapper mapper)
+        private readonly IPhotoService _photoService;
+        public UsersController(IUserRepository userRepository, IMapper mapper, 
+                            IPhotoService photoService)
         {
+            _photoService = photoService;
             _mapper = mapper;
             _userRepository = userRepository;
         }
@@ -50,7 +52,7 @@ namespace API.Controllers
             return await _userRepository.GetMemberAsync(username); 
         }
 
-         [HttpPut]
+         [HttpPut] //An update response, to update the users info
          //we're going to get the username from the token, because the user looks updating their own
          //profile, we'll have a token because this is going to be an authenticated request.
          //We don't need the username in the root parameter here, we can get that from the token
@@ -58,12 +60,8 @@ namespace API.Controllers
         {
             //we do not need to return anything if the user updated their profile 
             //because it will be reflected to them directly
-            //use the ? operator to prevent exception if the user is null
-            //claim type Defines constants for the well-known claim types 
-            //that can be assigned to a subject (NameIdentifier)
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             //Call the GetUserByUsernameAsync method in the IUserRepository to get the user info
-            var user = await _userRepository.GetUserByUsernameAsync(username);
+            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
             
             //From our memberupdateDTO into our user when we retrieve this user from our repository
             //and Entity framework is now tracking this user and any updates to this user are going to be tracked by Entity framework
@@ -71,13 +69,112 @@ namespace API.Controllers
             //DTO into and overwriting the properties in that user, but it is not saved into the database yet
             _mapper.Map(memberUpdateDto, user);
 
-            _userRepository.Update(user);
+            //_userRepository.Update(user);
 
             //To save the data into the database, ensure 
             if (await _userRepository.SaveAllAsync()) return NoContent();
             //if theres no changes to the database, return a bad request
             return BadRequest("Failed to update user");
         }
+
+    //To upload the images onto the cloudinary 
+    [HttpPost("add-photo")]
+    public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
+    {
+        var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+
+        //Check if theres a user
+        if (user == null) return NotFound();
+
+        //Call the AddPhotoAsync in the IPhotoService to add a new photo to the user
+        var result = await _photoService.AddPhotoAsync(file);
+
+        if (result.Error != null) return BadRequest(result.Error.Message);
+
+        var photo = new Photo
+        {
+            //The path of the image
+            Url = result.SecureUrl.AbsoluteUri,
+            PublicId = result.PublicId
+        };
+
+        //if this photo is the first photo of the user, make this the main photo 
+        if (user.Photos.Count == 0) photo.IsMain = true;
+
+        user.Photos.Add(photo);
+
+        if (await _userRepository.SaveAllAsync())
+        {
+            //To tell the API where to find the newly created resource, 
+            //refer to the GetUser method to map the username and the photo
+            return CreatedAtAction(nameof(GetUser), new { username = user.UserName },
+            //Also, send back the newly created resources
+                _mapper.Map<PhotoDto>(photo));
         }
+
+        return BadRequest("Problem adding photo");
+    }
+
+    //To Update the main photo of the user
+    [HttpPut("set-main-photo/{photoId}")]  //route
+    public async Task<ActionResult> SetMainPhoto(int photoId)
+    {
+        //To get the user
+        var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+        //Make sure we have a user
+        if (user == null) return NotFound();
+        //Get hold of the photo from that user object
+        var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
+        //To make sure there is a photo uploaded
+        if (photo == null) return NotFound();
+        //to check to see if this photo is already the user's main photo
+        //If it is, we do not want to allow them to set it as main again        
+        if (photo.IsMain) return BadRequest("This is already your main photo");
+        //then we'll check to see what the current main photo is,
+        //to need to switch that to be not the main photo
+        var currentMain = user.Photos.FirstOrDefault(x => x.IsMain);
+        //That means we already have a photo that is set to the main or has is main set to true
+        if (currentMain != null) currentMain.IsMain = false;
+        //then we can set the new photo or the photo we're updating is main equal to true
+        photo.IsMain = true;
+
+        if (await _userRepository.SaveAllAsync()) return NoContent();
+
+        return BadRequest("Problem setting main photo");
+    }
+
+    //To for deleting photo
+    [HttpDelete("delete-photo/{photoId}")]
+    //Do not need to return anyting, as the user could able to see
+    public async Task<ActionResult> DeletePhoto(int photoId)
+    {
+
+        var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+
+        var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
+
+        if (photo == null) return NotFound();
+
+        //To check if the photo selected is the main photo
+        if (photo.IsMain) return BadRequest("You cannot delete your main photo");
+        //To check if the photo has a public Id
+        //If do not have, we cant delete the photo in the cloudinary
+        if (photo.PublicId != null)
+        {
+            var result = await _photoService.DeletePhotoAsync(photo.PublicId);
+            if (result.Error != null) return BadRequest(result.Error.Message);
+        }
+        
+        //To remove the photo
+        user.Photos.Remove(photo);
+        //To save the changes
+        if (await _userRepository.SaveAllAsync()) return Ok();
+
+        return BadRequest("Problem deleting photo");
+    }    
+    }
+
+
+        
 }
 

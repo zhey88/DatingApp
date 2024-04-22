@@ -11,7 +11,7 @@ namespace API.Entities
         public string Url { get; set; }
         //To check if the photo is the main photo
         public bool IsMain { get; set; }
-        //For photo upload/ store the photos
+        //For photo upload/ store the photo, for cloudinary, IPhotoService.cs
         public string PublicId { get; set; }
 
         //For fully defined relationship between photos and users
