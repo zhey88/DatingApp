@@ -113,6 +113,13 @@ export class PhotoEditorComponent implements OnInit {
         const photo = JSON.parse(response);
         //To add the images to the user
         this.member?.photos.push(photo);
+        //after we've uploaded a photo successfully, we need to do the checks and see if the photo
+        //is the main photo and we have this user and this member
+        if (photo.isMain && this.user && this.member) {
+          this.user.photoUrl = photo.url;
+          this.member.photoUrl = photo.url;
+          this.accountService.setCurrentUser(this.user);
+        }
       }
     }
   }

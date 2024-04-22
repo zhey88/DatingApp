@@ -26,6 +26,7 @@ namespace API.Helpers
             CreateMap<Photo, PhotoDto>();  //go from AppUser to MemberDto
             //We do not need to add any additional configuration here because all the properties are the same
             CreateMap<MemberUpdateDto, AppUser>(); //map the updatedMember details to the AppUser
+            CreateMap<RegisterDto, AppUser>(); //map the registerDto to the AppUser
         }
     }
 

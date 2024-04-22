@@ -4,6 +4,7 @@ using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +14,13 @@ public class AccountController : BaseApiController
 {
     private readonly DataContext _context;
     private readonly ITokenService _tokenService;
+    private readonly IMapper _mapper;
     
-    public AccountController(DataContext context, ITokenService tokenService)
+    public AccountController(DataContext context, ITokenService tokenService, IMapper mapper)
     {
         _tokenService = tokenService;
         _context = context;
+        _mapper = mapper;
     }
 
     //Post request to send the user details to the database
@@ -27,18 +30,19 @@ public class AccountController : BaseApiController
         //Return error message when the username is created
         if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
 
+        //we're going to go to our app user from our register data
+        var user = _mapper.Map<AppUser>(registerDto);
+
         //use of using to dispose the memory after using a class
         //HMACSHA512 just a way to hashmap the password
         using var hmac = new HMACSHA512();
 
-        var user = new AppUser
-        {
-            //Save the username into our database in lowercase for compare
-            UserName = registerDto.Username.ToLower(),
-             //To transform the hashmap password into bytes format
-            PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-            PasswordSalt = hmac.Key //The hashmap method will generate a random key and we could store it into salt
-        };
+        //Save the username into our database in lowercase for compare
+        user.UserName = registerDto.Username.ToLower();
+        //To transform the hashmap password into bytes format
+        user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
+        user.PasswordSalt = hmac.Key; //The hashmap method will generate a random key and we could store it into salt
+    
 
         //Track the entities in the memory
         _context.Users.Add(user);
@@ -49,8 +53,7 @@ public class AccountController : BaseApiController
         {
             Username = user.UserName,
             Token = _tokenService.CreateToken(user),
-            //For adding the mainphoto of the user to the nav bar
-            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url            
+            KnownAs = user.KnownAs            
         };
     }
 
@@ -85,7 +88,10 @@ public class AccountController : BaseApiController
         return new UserDto
         {
             Username = user.UserName,
-            Token = _tokenService.CreateToken(user)
+            Token = _tokenService.CreateToken(user),
+            //For adding the mainphoto of the user to the nav bar
+            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+            KnownAs = user.KnownAs 
         };
     }
 

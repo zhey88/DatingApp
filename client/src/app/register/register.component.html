@@ -1,26 +1,53 @@
 <!--use of ngForm to access all the user input in the form, 
  call the register() method in the ts file when the user click the submit button-->
-<form #registerForm="ngForm" (ngSubmit)="register()" autocomplete="off">
+ <!--Use of reactiveForm instead-->
+ <form [formGroup]="registerForm" (ngSubmit)="registerForm.valid && register()" autocomplete="off">
     <h2 class="text-center text-primary">Sign up</h2>
     <hr>
-    <div class="mb-3">
-        <input type="text" 
-            class="form-control" 
-            name="username" 
-            [(ngModel)]="model.username" 
-            placeholder="Username">
-    </div>
 
     <div class="mb-3">
-        <input type="password" 
-            class="form-control" 
-            name="password" 
-            [(ngModel)]="model.password" 
-            placeholder="Password">
+        <label style="margin-right: 10px;">I am a: </label>
+        <label class="form-check-label">
+            <input class="form-check-input" type="radio" value="male" formControlName="gender"> Male
+        </label>
+        <label class="form-check-label">
+            <input class="form-check-input ms-3" type="radio" value="female" formControlName="gender"> Female
+        </label>
     </div>
+
+    <!--Use of the resuable text input from the text-input file-->
+    <app-text-input [formControl]="$any(registerForm.controls['username'])"
+        [label]="'Username'"></app-text-input>
+    <app-text-input [formControl]="$any(registerForm.controls['knownAs'])"
+        [label]="'Known As'"></app-text-input>
+    <!--Use of the resuable date input from the date-input file -->
+    <app-date-picker [formControl]="$any(registerForm.controls['dateOfBirth'])"
+        [label]="'Date of birth'" [maxDate]="maxDate"></app-date-picker>
+    <app-text-input [formControl]="$any(registerForm.controls['city'])"
+        [label]="'City'"></app-text-input>
+    <app-text-input [formControl]="$any(registerForm.controls['country'])"
+        [label]="'Country'"></app-text-input>
+    <app-text-input [formControl]="$any(registerForm.controls['password'])"
+        [label]="'Password'" [type]="'password'"></app-text-input>
+    <app-text-input
+        [formControl]="$any(registerForm.controls['confirmPassword'])"
+        [label]="'Confirm Password'" [type]="'password'"></app-text-input>
+
+    <!--To check if we have any validation errors-->
+    <div class="row" *ngIf="validationErrors">
+        <ul class="text-danger">
+            <li *ngFor="let error of validationErrors">
+                {{error}}
+            </li>
+        </ul>
+    </div>
+
+
+    <!--Disable the button when the form is not valid-->
     <div class="form-group text-center">
-        <button class="btn btn-success me-2" type="submit">Register</button>
-        <!--Call the method when clicking the cancel button-->
-        <button class="btn btn-default me-2" (click)="cancel()" type="button">Cancel</button>
+        <button [disabled]="!registerForm.valid" class="btn btn-success me-2" 
+            type="submit">Register</button>
+        <button class="btn btn-default me-2" (click)="cancel()"
+            type="button">Cancel</button>
     </div>
 </form>
