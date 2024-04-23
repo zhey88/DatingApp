@@ -29,6 +29,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IPhotoService, PhotoService>();
         //Call the LogUserActivity to update the last active property inside the user
         services.AddScoped<LogUserActivity>();
+        services.AddScoped<ILikesRepository, LikesRepository>();
 
         return services;
     }

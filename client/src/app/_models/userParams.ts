@@ -5,7 +5,6 @@ export class UserParams {
     minAge = 18;
     maxAge = 99;
     pageNumber = 1;
-    //reduce the page size and we'll just set this to three so we can more easily see how this
     pageSize = 5;
     orderBy = 'lastActive';
 

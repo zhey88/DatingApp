@@ -1,22 +1,8 @@
 ﻿namespace API.Helpers
 {
-    public class UserParams
+    //user parameters we can derive from the pagination params class
+    public class UserParams : PaginationParams
     {
-        //set a maxi page size the user can request
-        private const int MaxPageSize = 50;
-        //So we'd always return the first page
-        public int PageNumber { get; set; } = 1;
-        private int _pageSize = 10;
-
-        public int PageSize
-        {
-            //This will get the value of 10
-            get => _pageSize;
-            //check the value against the maximum page size
-            //check to see if this is greater than the max page size
-            //if greater, we will return the max page size, if not, return pageSize
-            set => _pageSize = (value > MaxPageSize) ? MaxPageSize : value;
-        }
 
         public string CurrentUsername { get; set; }
         public string Gender { get; set; }

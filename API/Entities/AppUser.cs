@@ -31,6 +31,12 @@ namespace API.Entities
         public string Country {get; set;}
         public List<Photo> Photos {get; set;} = new();
 
+        //Need a join table between another app user
+        //a many relationship with liked by users
+        //a many relationship to like users
+        public List<UserLike> LikedByUsers { get; set; }
+        public List<UserLike> LikedUsers { get; set; }
+
         //we need to remove the GetAge method from the AppUser.cs file to 
         //stop the database from querying the hash and salt password
         //public int GetAge()
