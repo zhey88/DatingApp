@@ -4,4 +4,6 @@ export interface User {
     token: string;
     //For adding the main photo of user to nav bar
     photoUrl: string;
+    knownAs: string;
+    gender: string;
 }

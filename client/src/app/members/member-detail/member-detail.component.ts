@@ -5,6 +5,7 @@ import { GalleryItem, GalleryModule, ImageItem } from 'ng-gallery';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { Member } from '../../_models/member';
 import { MembersService } from '../../_services/members.service';
+import { TimeagoModule } from 'ngx-timeago';
 
 @Component({
   selector: 'app-member-detail',
@@ -14,7 +15,7 @@ import { MembersService } from '../../_services/members.service';
   standalone: true,
   templateUrl: './member-detail.component.html',
   styleUrls: ['./member-detail.component.css'],
-  imports: [CommonModule, TabsModule, GalleryModule]
+  imports: [CommonModule, TabsModule, GalleryModule, TimeagoModule]
 })
 
 export class MemberDetailComponent implements OnInit {

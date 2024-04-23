@@ -6,6 +6,8 @@ namespace API.DTOs
         public string Token { get; set; }
         //To add the main photo of the user to the navbar
         public string PhotoUrl { get; set; }      
-        public string KnownAs { get; set; }  
+        public string KnownAs { get; set; }
+        public string Gender { get; set; }    
+
     }
 }

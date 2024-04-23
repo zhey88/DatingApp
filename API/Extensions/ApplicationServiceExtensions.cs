@@ -27,6 +27,8 @@ public static class ApplicationServiceExtensions
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
         services.AddScoped<IPhotoService, PhotoService>();
+        //Call the LogUserActivity to update the last active property inside the user
+        services.AddScoped<LogUserActivity>();
 
         return services;
     }

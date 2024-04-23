@@ -2,6 +2,7 @@
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
+using API.Helpers;
 using API.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -27,15 +28,38 @@ namespace API.Controllers
         }
 
         //Http request to get all the users in a list 
+        //Now we're going to ask the client to send this up as a query string
+        //when we use a query string, we're going to need to tell our API where to find it
+        //[FromQuery] where it needs to look to find these userParams
         [HttpGet] 
-        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
+        public async Task<ActionResult<PagedList<MemberDto>>> GetUsers(
+                                [FromQuery] UserParams userParams)
         {
+            //To get the current user info 
+            var currentUser = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            //we're going to get our current user username to populate that particular field
+            userParams.CurrentUsername = currentUser.UserName;
+
+            //Now we want of course our users to be able to select which gender they want to view, but if they do
+            //not make a selection or they've just loaded up the member's page, then we're going to send back a default
+            // check to see if the string dot is null or empty for the user params gender
+            if (string.IsNullOrEmpty(userParams.Gender))
+            //check if the user is male 
+            //if is male, we going to set the gender to female
+                userParams.Gender = currentUser.Gender == "male" ? "female" : "male";
+
             //Give us the list of users asynchronously
             //Call the getMembersAsync in the IUserRepository file
             //return OK to return our users as a list
             //we need to map the properties from MemberDto and PhotoDto, use of AutoMapper
-            var users = await _userRepository.GetMembersAsync();
+            var users = await _userRepository.GetMembersAsync(userParams);
             //Specify the user info we want to return by mapping the properties in the MemberDto
+
+            //Now we also want to return our pagination information via pagination header
+            //So we're going to get access to our HTTP response inside our API controller
+            //created an extension method called add pagination header
+            Response.AddPaginationHeader(new PaginationHeader(users.CurrentPage, users.PageSize,
+                users.TotalCount, users.TotalPages));
 
             return Ok(users);
         }

@@ -1,5 +1,6 @@
 ﻿﻿using API.DTOs;
 using API.Entities;
+using API.Helpers;
 using API.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -38,12 +39,36 @@ namespace API.Data
         }
 
         //Get the list of users
-        public async Task<IEnumerable<MemberDto>> GetMembersAsync()
+        public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
         {
-            return await _context.Users
-                .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
-                //Give us a list of users 
-                .ToListAsync();
+            var query = _context.Users.AsQueryable();
+
+           //build up our query based on the information we have that we're
+           //going to exclude the currently logged in user from the results that we return.
+            query = query.Where(u => u.UserName != userParams.CurrentUsername);
+            //ask about the gender
+            query = query.Where(u => u.Gender == userParams.Gender);
+
+            //To get the date of user borned between Max age and the Min age 
+            var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MaxAge - 1));
+            var maxDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MinAge));
+
+            //filter the users that is between min age and max age
+            query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
+
+            //To sort the users by the created and lastActive, newest user to oldest user
+            query = userParams.OrderBy switch
+            {
+                //newest user to oldest user
+                "created" => query.OrderByDescending(u => u.Created),
+                //Most recently active user first
+                _ => query.OrderByDescending(u => u.LastActive)
+            };
+
+            //Return the PagedList, CurrentPage,TotalPages,PageSize,TotalCount
+            return await PagedList<MemberDto>.CreateAsync(query.AsNoTracking()
+            .ProjectTo<MemberDto>(_mapper.ConfigurationProvider),
+                userParams.PageNumber, userParams.PageSize);
         }
 
         //all of these are tasks or returning a task of something

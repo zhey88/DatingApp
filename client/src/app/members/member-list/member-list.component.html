@@ -1,6 +1,93 @@
+<!--we tell them how many users matched their query-->
+<div class="text-center mt-3">
+    <h2>Your matches - {{pagination?.totalItems}} found</h2>
+</div>
+
+
+<!--Call the method loadMembers() when they submit the filter -->
+<div class="container mt-3" *ngIf="userParams">
+    <form #form="ngForm" class="d-flex mb-3" (ngSubmit)="loadMembers()"
+        autocomplete="off">
+        <div class="d-flex mx-2">
+            <label class="col-form-label">Age from: </label>
+            <input 
+                type="number" 
+                class="form-control ms-1" 
+                style="width: 70px;"
+                name="minAge" 
+                [(ngModel)]="userParams.minAge">
+        </div>
+        <div class="d-flex px-2">
+            <label class="col-form-label">Age to: </label>
+            <input 
+                type="number" 
+                class="form-control ms-1" 
+                style="width: 70px;"
+                name="maxAge" 
+                [(ngModel)]="userParams.maxAge">
+        </div>
+
+        <!--Show the gender list, male or female-->
+        <div class="d-flex px-2">
+            <label class="col-form-label me-2">Show: </label>
+            <select name="gender" style="width: 130px;" class="form-select ml-1" 
+            [(ngModel)]="userParams.gender">
+                <option *ngFor="let gender of genderList" [value]="gender.value">
+                    {{gender.display}}
+                </option>
+            </select>
+        </div>
+
+        <!--Call resetFilters method-->
+        <button class="btn btn-primary ms-1" type="submit">Apply Filters</button>
+        <button (click)="resetFilters()" class="btn btn-info ms-1" type="submit">Reset Filters</button>
+
+        <!--To sort the members, we load up the members from the API when this button is clicked-->
+        <!--update our user params when this button is clicked-->
+        <div class="col">
+            <div class="btn-group float-end">
+                <button 
+                    type="button"
+                    class="btn btn-primary" 
+                    name="orderBy" 
+                    (click)="loadMembers()"
+                    btnRadio="lastActive"
+                    [(ngModel)]="userParams.orderBy">Last Active</button>
+                <!--userParams.orderBy is called in the members.service.ts-->
+                <button 
+                    type="button"
+                    class="btn btn-primary" 
+                    name="orderBy" 
+                    (click)="loadMembers()"
+                    btnRadio="created"
+                    [(ngModel)]="userParams.orderBy">Newest members</button>
+            </div>
+        </div> 
+
+    </form>
+</div>
+
 <div class="row">
-    <div class="col-2" *ngFor="let member of members$ | async">
+    <div class="col-2" *ngFor="let member of members">
         <!--Ge the member info from the member card-->
         <app-member-card [member]="member"></app-member-card>
     </div>
+</div>
+
+<!--To check if we have pagination, access to paginatoin in the models file and get access to the 
+    properties. 2 way binding between our components and the pagination components
+    Call the pageChanged method to navigate different pages-->
+<div class="d-flex justify-content-center" *ngIf="pagination">
+    <pagination 
+        [boundaryLinks]="true" 
+        [totalItems]="pagination.totalItems"
+        [itemsPerPage]="pagination.itemsPerPage"
+        [(ngModel)]="pagination.currentPage"
+        (pageChanged)="pageChanged($event)"
+        [maxSize]="10"
+        previousText="&lsaquo;" 
+        nextText="&rsaquo;" 
+        firstText="&laquo;"
+        lastText="&raquo;">
+    </pagination>
 </div>

@@ -53,7 +53,8 @@ public class AccountController : BaseApiController
         {
             Username = user.UserName,
             Token = _tokenService.CreateToken(user),
-            KnownAs = user.KnownAs            
+            KnownAs = user.KnownAs,
+            Gender = user.Gender             
         };
     }
 
@@ -91,7 +92,9 @@ public class AccountController : BaseApiController
             Token = _tokenService.CreateToken(user),
             //For adding the mainphoto of the user to the nav bar
             PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
-            KnownAs = user.KnownAs 
+            KnownAs = user.KnownAs,
+            Gender = user.Gender 
+
         };
     }
 

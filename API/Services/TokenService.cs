@@ -23,11 +23,14 @@ public class TokenService : ITokenService
     public string CreateToken(AppUser user)
     {
         //Claim about a user, i might claim my name is something
-        //It is a bit of information that a user claims, we set the claim to be the username 
+        //It is a bit of information that a user claims, we set the claim to be the userId
+        //Claim needs to be String 
         //We create a list of claim for many claims 
         var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.NameId, user.UserName)
+                //To get the userId with token
+                new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName)
             };
 
         //Sign the claims, SecurityAlgorithms... is used to encrypt this key
