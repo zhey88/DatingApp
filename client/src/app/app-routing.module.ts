@@ -11,6 +11,7 @@ import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { ServerErrorComponent } from './errors/server-error/server-error.component';
 import { MemberEditComponent } from './members/member-edit/member-edit.component';
 import { preventUnsavedChangesGuard } from './_guards/prevent-unsaved-changes.guard';
+import { memberDetailedResolver } from './_resolvers/member-detailed.resolver';
 
 const routes: Routes = [
     //Default page 
@@ -24,7 +25,8 @@ const routes: Routes = [
     //Use of children routes to navigate to the child components by adding the path to the current address
     children: [
       {path: 'members', component: MemberListComponent},
-      {path: 'members/:username', component: MemberDetailComponent},
+      {path: 'members/:username', component: MemberDetailComponent, 
+        resolve: {member: memberDetailedResolver}},
       //To prevent the user from leaving the page before saving the changes
       {path: 'member/edit', component: MemberEditComponent, canDeactivate: [preventUnsavedChangesGuard]},
       {path: 'lists', component: ListsComponent},

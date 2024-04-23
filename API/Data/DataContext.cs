@@ -21,6 +21,8 @@ public class DataContext : DbContext
 
     //For like functionality, create a table Likes
     public DbSet<UserLike> Likes { get; set; }
+    //For messaging functionality, create a table Messages
+    public DbSet<Message> Messages { get; set; }
 
     //we need to override a method provided inside class We're deriving from the DB context
     //we can override this method to further configure
@@ -52,5 +54,16 @@ public class DataContext : DbContext
             .WithMany(l => l.LikedByUsers)
             .HasForeignKey(s => s.TargetUserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        //Set up the many to many relationships for the message functionality
+        builder.Entity<Message>()
+                .HasOne(u => u.Recipient)
+                .WithMany(m => m.MessagesReceived)
+                .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Message>()
+            .HasOne(u => u.Sender)
+            .WithMany(m => m.MessagesSent)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

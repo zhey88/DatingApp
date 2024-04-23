@@ -36,6 +36,8 @@ namespace API.Entities
         //a many relationship to like users
         public List<UserLike> LikedByUsers { get; set; }
         public List<UserLike> LikedUsers { get; set; }
+        public List<Message> MessagesSent { get; set; }
+        public List<Message> MessagesReceived { get; set; }
 
         //we need to remove the GetAge method from the AppUser.cs file to 
         //stop the database from querying the hash and salt password

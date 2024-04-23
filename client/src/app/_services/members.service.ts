@@ -7,6 +7,7 @@ import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
 import { AccountService } from './account.service';
 import { User } from '../_models/user';
+import { getPaginatedResult, getPaginationHeaders } from './paginationHelper';
 
 @Injectable({
   providedIn: 'root'
@@ -73,7 +74,7 @@ export class MembersService {
     //However, we will need to pass the token to be authorized 
     //Pass the token we get from the getHttpOptions method
     //Get the user parameters from the userParams.ts
-    let params = this.getPaginationHeaders(userParams.pageNumber, userParams.pageSize);
+    let params = getPaginationHeaders(userParams.pageNumber, userParams.pageSize);
 
     //Filters
     params = params.append('minAge', userParams.minAge);
@@ -84,7 +85,7 @@ export class MembersService {
     //when we go out and we do not have something in our member cache for this particular
     //query, then we're going to go to our API and with the results we get back, 
     //we're going to set them inside the member cache
-    return this.getPaginatedResult<Member []>(this.baseUrl + 'users', params).pipe(
+    return getPaginatedResult<Member []>(this.baseUrl + 'users', params, this.http).pipe(
       map(response => {
         this.memberCache.set(Object.values(userParams).join('-'), response);
         return response;
@@ -144,47 +145,13 @@ export class MembersService {
 
   //Get the users that the current user has liked
   getLikes(predicate: string, pageNumber: number, pageSize: number) {
-    let params = this.getPaginationHeaders(pageNumber, pageSize);
+    let params = getPaginationHeaders(pageNumber, pageSize);
 
     params = params.append('predicate', predicate);
 
-    return this.getPaginatedResult<Member[]>(this.baseUrl + 'likes', params);
+    return getPaginatedResult<Member[]>(this.baseUrl + 'likes', params, this.http);
   }
 
-
-  //We need to get access to the full HTTP response because 
-  //that's where our pagination header is residing
-  //to observe the response to have access to the response
-  //use of <T> to make this method resuable 
-  private getPaginatedResult<T>(url: string, params: HttpParams) {
-    const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>;
-    return this.http.get<T>(url , { observe: 'response', params }).pipe(
-      map(response => {
-        if (response.body) {
-          paginatedResult.result = response.body;
-        }
-        // specify pagination as the header that we're interested in getting
-        const pagination = response.headers.get('Pagination');
-        if (pagination) {
-          //to get the serialized JSON into an object
-          paginatedResult.pagination = JSON.parse(pagination);
-        }
-        return paginatedResult;
-      })
-
-    );
-  }
-
-  private getPaginationHeaders(pageNumber : number, pageSize: number) {
-    let params = new HttpParams();
-
-      // we're going to set our params so that we can add the query string
-      //that goes along with request
-      params = params.append('pageNumber', pageNumber);
-      params = params.append('pageSize', pageSize);
-
-    return params;
-  }
 }
 
 

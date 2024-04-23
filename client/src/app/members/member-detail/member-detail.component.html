@@ -1,4 +1,4 @@
-<div class="row" *ngIf="member">
+<div class="row">
     <div class="col-4">
         <div class="card">
             <!--Show the image of the user, || give the initial photo of the user-->
@@ -26,28 +26,34 @@
             <div class="card-footer">
                 <div class="btn-group d-flex">
                     <button class="btn btn-primary">Like</button>
-                    <button class="btn btn-success">Message</button>
+                    <!--To active the messages tab upon click, go to the message tab -->
+                    <button (click)="selectTab('Messages')" class="btn btn-success">Message</button>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-8">
-        <tabset class="member-tabset">
-            <tab heading="About {{member.knownAs}}">
+        <!--template reference variable-->
+        <tabset class="member-tabset" #memberTabs>
+            <!--Only load the info when you click on the button -->
+            <tab heading="About {{member.knownAs}}"  (selectTab)="onTabActivated($event)">
                 <h4>Description</h4>
                 <p>{{member.introduction}}</p>
                 <h4>Looking for</h4>
                 <p>{{member.lookingFor}}</p>
             </tab>
-            <tab heading="Interests">
+            <!--Only load the info when you click on the button -->
+            <tab heading="Interests" (selectTab)="onTabActivated($event)">
                 <h4>Interests</h4>
                 <p>{{member.interests}}</p>
             </tab>
-            <tab heading="Photos" #photoTab="tab">
+            <!--Only load the info when you click on the button -->
+            <tab heading="Photos" #photoTab="tab" (selectTab)="onTabActivated($event)">
                 <gallery *ngIf="photoTab.active" [items]="images" class="gallery"></gallery>
             </tab>
-            <tab heading="Messages">
-                <p>Messages will go here</p>
+            <tab heading="Messages" (selectTab)="onTabActivated($event)">
+                <!--Only load the messages when you click on the button -->
+                <app-member-messages [username]="member.userName" [messages]="messages"></app-member-messages>
             </tab>
         </tabset>
     </div>

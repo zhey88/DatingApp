@@ -27,6 +27,13 @@ namespace API.Helpers
             //We do not need to add any additional configuration here because all the properties are the same
             CreateMap<MemberUpdateDto, AppUser>(); //map the updatedMember details to the AppUser
             CreateMap<RegisterDto, AppUser>(); //map the registerDto to the AppUser
+            ////set up auto mapper so that we can map from our message to our message dto
+            CreateMap<Message, MessageDto>()
+            //Map the PhotoUrl, the rest of properties, Id, sendername, etc will be mapped by the framework
+                .ForMember(d => d.SenderPhotoUrl, o => o.MapFrom(s => s.Sender.Photos
+                    .FirstOrDefault(x => x.IsMain).Url))
+                .ForMember(d => d.RecipientPhotoUrl, o => o.MapFrom(s => s.Recipient.Photos
+                    .FirstOrDefault(x => x.IsMain).Url));
         }
     }
 
