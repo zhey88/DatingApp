@@ -55,6 +55,11 @@ export class AccountService {
   
 //set this information inside our account service.
   setCurrentUser(user: User) {
+    user.roles = [];
+    //Call getDecodedToken method to get the roles of the user
+    const roles = this.getDecodedToken(user.token).role;
+    //going to check to see if this is an array, yes --> add multiple roles, no --> add single role
+    Array.isArray(roles) ? user.roles = roles : user.roles.push(roles);
     //To let the other components know about the login user informaiton
     //to update our current user source with the user if we successfully log in.
     this.currentUserSource.next(user);
@@ -66,5 +71,12 @@ export class AccountService {
   logout(){
     localStorage.removeItem('user');
     this.currentUserSource.next(null);
+  }
+
+  //split by the period that's inside our token and we're only interested in getting the middle parts
+  //which contains id, roles and the username
+  //For admin guard, restrict users that are not admin role to access admin page
+  getDecodedToken(token: string) {
+    return JSON.parse(atob(token.split('.')[1]));
   }
 }

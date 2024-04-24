@@ -1,6 +1,9 @@
 ﻿using System.Text;
+using API.Data;
+using API.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Identity;
 
 namespace API.Extensions;
 
@@ -8,6 +11,18 @@ public static class IdentityServiceExtensions
 {
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
     {
+        services.AddIdentityCore<AppUser>(opt =>
+        {
+            //we can specify the complexity, RequireNonAlphanumeric
+            //means we need something that's not a number or a letter and require an uppercase character
+            //We turned off that
+            opt.Password.RequireNonAlphanumeric = false;
+        })
+            .AddRoles<AppRole>() //we need to specify role manager first
+            .AddRoleManager<RoleManager<AppRole>>()
+            //to create all of the tables related to identity in our database
+            .AddEntityFrameworkStores<DataContext>(); //pass list to data context
+            
         //So that as our request comes in, the request can be inspected 
         //and then the framework can decide whether or not to 
         //let the user proceed based on their authentication, token or otherwise.
@@ -27,8 +42,13 @@ public static class IdentityServiceExtensions
                 };
             });
 
-//Now, in order for this service to be used, we need to add the 
-//middleware to authenticate the request. After useCors and before MapControllers
+            //To add the policy for authorization, refers to the AdminController
+            services.AddAuthorization(opt =>
+            {
+                opt.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+                opt.AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
+            });
+
 
         return services;
     }

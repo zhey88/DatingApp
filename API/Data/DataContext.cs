@@ -1,12 +1,19 @@
 ﻿//namespace should be the physical location of the file, else it will have errors
 using API.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Data;
 
 //DataContext class is going to be derived from an entity framework class, DbContext, import it
 //it allows us to query and save instances of your entities
-public class DataContext : DbContext
+// Identity DB Context already has a DB set for users
+//So we need to tell identity DB context about the classes that we've created
+//We specify all of these because we have a join table here
+public class DataContext : IdentityDbContext<AppUser, AppRole, int, 
+        IdentityUserClaim<int>, AppUserRole, IdentityUserLogin<int>, 
+        IdentityRoleClaim<int>, IdentityUserToken<int>>
 {
     //When an instance of class, DataContext is called, the constructor will run with the options we provide
     public DataContext(DbContextOptions options) : base(options)
@@ -17,7 +24,6 @@ public class DataContext : DbContext
     //If we call this property users, then that is going to represent the name of the table in
     //our database when it is created
     //Now we got the dbset of app user and we got our data context class, we need to tell our applicaiton in the program class
-    public DbSet<AppUser> Users { get; set; }
 
     //For like functionality, create a table Likes
     public DbSet<UserLike> Likes { get; set; }
@@ -32,6 +38,19 @@ public class DataContext : DbContext
     {
         //This uses the method inside the base class DB context and passes it this builder object
         base.OnModelCreating(builder);
+
+        //Set up the many to many relationship between users and user roles
+        builder.Entity<AppUser>()
+            .HasMany(ur => ur.UserRoles)
+            .WithOne(u => u.User)
+            .HasForeignKey(ur => ur.UserId)
+            .IsRequired();
+
+        builder.Entity<AppRole>()
+            .HasMany(ur => ur.UserRoles)
+            .WithOne(u => u.Role)
+            .HasForeignKey(ur => ur.RoleId)
+            .IsRequired();
 
         //this is how we're going to specify what its primary key is
         //made up of the two different entities, and they are the same entity

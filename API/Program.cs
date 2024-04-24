@@ -1,9 +1,15 @@
 //using System.Text;
+using System.Text;
 using API.Data;
+using API.Entities;
 using API.Errors;
 using API.Extensions;
-//using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+
+//using Microsoft.AspNetCore.Authentication.JwtBearer;
 //using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,13 +46,17 @@ var services  = scope.ServiceProvider;
 try
 {
     var context = services.GetRequiredService<DataContext>();
+    //get our user manager service so that we can pass it to the SeedUsers method
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     //this migrateAsync method asynchronously applies any pending migrations for the context to the database
     //and it will create the database if it does not already exist
     //So if we drop our database and we want to reset everything, all we need to do is literally drop the
     //database and restart our API
     //It will help us generate a new database, with new tables,new columns etc if something went wrong
     await context.Database.MigrateAsync();
-    await Seed.SeedUsers(context);
+    //To seed the user with their info and a role assigned to them intothe database
+    await Seed.SeedUsers(userManager, roleManager);
 }
 catch (Exception ex)
 {

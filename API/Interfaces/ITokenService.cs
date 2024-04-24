@@ -6,5 +6,5 @@ namespace API.Interfaces;
 //and it has to return a string and take an appuser as an argument
 public interface ITokenService
 {
-    string CreateToken(AppUser user);
+    Task<string> CreateToken(AppUser user);
 }

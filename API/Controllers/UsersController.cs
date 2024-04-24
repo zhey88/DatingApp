@@ -27,6 +27,9 @@ namespace API.Controllers
             _userRepository = userRepository;
         }
 
+        //we then specify which roles we want to allow to access this particular endpoint.
+        //[Authorize(Roles="Admin")]
+
         //Http request to get all the users in a list 
         //Now we're going to ask the client to send this up as a query string
         //when we use a query string, we're going to need to tell our API where to find it
@@ -64,6 +67,8 @@ namespace API.Controllers
             return Ok(users);
         }
 
+        //[Authorize(Roles="Member")]
+        
         //Http request to get a single user of that username
         //Get the username of the user from the http address
         //Asyn allows the server to handle multiple requests at the same time
