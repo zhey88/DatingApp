@@ -40,6 +40,28 @@ public static class IdentityServiceExtensions
                     //this gives our server enough information to take a look at the token
                     //and invalidate it just based on the issuer signing key which we have implemented.
                 };
+
+                //how are we going to authenticate inside signal
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context => 
+                    {
+                        //get access to our access token, bearer token
+                        //access_token is what signal are from the client side is going to use 
+                        //when it sends up the token
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        //Make sure we have the accessToken, look for the /hubs path
+                        //this needs to match the first part of what we call this inside our program class
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            //if we are on that path and we have an access token
+                            //this gives our signal, our hub, access to our bearer token
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             //To add the policy for authorization, refers to the AdminController

@@ -2,6 +2,7 @@
 using API.Helpers;
 using API.Interfaces;
 using API.Services;
+using API.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Extensions;
@@ -31,6 +32,12 @@ public static class ApplicationServiceExtensions
         services.AddScoped<LogUserActivity>();
         services.AddScoped<ILikesRepository, LikesRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddSignalR();
+        //Did not use AddScoped, use Singleton so that
+        //this dictionary to be available application wide 
+        //for every user that connects to our service
+        //Also, it will not be destoryed once the HTTP request has been completed
+        services.AddSingleton<PresenceTracker>();
 
         return services;
     }

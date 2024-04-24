@@ -4,6 +4,7 @@ using API.Data;
 using API.Entities;
 using API.Errors;
 using API.Extensions;
+using API.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,8 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 //Basically, with this, we are allowing the http request to access to the dabase from the 4200
-app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
+app.UseCors(builder => builder.AllowAnyHeader().AllowCredentials(). //We need to use lists
+    AllowAnyMethod().WithOrigins("http://localhost:4200"));
 //The middleware to authenticate the request for the AddAuthentication service
 //UseAuthentication ask do you have a valid token?
 //UseAuthorization, you have a valid token and what are you allowed to do?
@@ -37,6 +39,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+//How does our client find our hub
+app.MapHub<PresenceHub>("hubs/presence");
+//how they're going to connect to this particular hub.
+app.MapHub<MessageHub>("hubs/message");
 
 //this is going to give us access to all of the services that we have inside this program class
 using var scope = app.Services.CreateScope();
@@ -55,6 +61,9 @@ try
     //database and restart our API
     //It will help us generate a new database, with new tables,new columns etc if something went wrong
     await context.Database.MigrateAsync();
+    //When we're migrating our database, we could take the opportunity to clear out
+    //the connections table when our application restarts
+    await context.Database.ExecuteSqlRawAsync("DELETE FROM [Connections]");
     //To seed the user with their info and a role assigned to them intothe database
     await Seed.SeedUsers(userManager, roleManager);
 }

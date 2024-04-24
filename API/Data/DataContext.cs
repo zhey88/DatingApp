@@ -11,8 +11,8 @@ namespace API.Data;
 // Identity DB Context already has a DB set for users
 //So we need to tell identity DB context about the classes that we've created
 //We specify all of these because we have a join table here
-public class DataContext : IdentityDbContext<AppUser, AppRole, int, 
-        IdentityUserClaim<int>, AppUserRole, IdentityUserLogin<int>, 
+public class DataContext : IdentityDbContext<AppUser, AppRole, int,
+        IdentityUserClaim<int>, AppUserRole, IdentityUserLogin<int>,
         IdentityRoleClaim<int>, IdentityUserToken<int>>
 {
     //When an instance of class, DataContext is called, the constructor will run with the options we provide
@@ -29,6 +29,10 @@ public class DataContext : IdentityDbContext<AppUser, AppRole, int,
     public DbSet<UserLike> Likes { get; set; }
     //For messaging functionality, create a table Messages
     public DbSet<Message> Messages { get; set; }
+
+    //To create 2 more tables, to make the message to be read in the live chat
+    public DbSet<Group> Groups { get; set; }
+    public DbSet<Connection> Connections { get; set; }
 
     //we need to override a method provided inside class We're deriving from the DB context
     //we can override this method to further configure

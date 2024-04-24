@@ -5,6 +5,10 @@
             <img src="{{member.photoUrl || './assets/user.png'}}" alt="{{member.knownAs}}"
                 class="card-img-top img-thumbnail">
             <div class="card-body">
+                <!--To show that the user is online inside the member detail page-->
+                <div class="mb-2" *ngIf="(presenceService.onlineUsers$ | async)?.includes(member.userName)">
+                    <i class="fa fa-user-circle text-success"></i> Online now
+                </div>
                 <div>
                     <strong>Location:</strong>
                     <p>{{member.city}}, {{member.country}}</p>
@@ -16,7 +20,7 @@
                 <div>
                     <!--Use of the date pipe to get a better format of date-->
                     <strong>Last active:</strong>
-                    <p>{{member.lastActive+ 'Z' | timeago}}</p>
+                    <p>{{member.lastActive | timeago}}</p>
                 </div>
                 <div>
                     <strong>Member since:</strong>
@@ -52,8 +56,8 @@
                 <gallery *ngIf="photoTab.active" [items]="images" class="gallery"></gallery>
             </tab>
             <tab heading="Messages" (selectTab)="onTabActivated($event)">
-                <!--Only load the messages when you click on the button -->
-                <app-member-messages [username]="member.userName" [messages]="messages"></app-member-messages>
+                <!--receive those messages from SignalR, ow we're going to get them when we connect to the Hub-->
+                <app-member-messages [username]="member.userName"></app-member-messages>
             </tab>
         </tabset>
     </div>

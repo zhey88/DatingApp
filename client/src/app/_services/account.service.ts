@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
 import { User } from '../_models/user';
 import { environment } from '../../environments/environment';
+import { PresenceService } from './presence.service';
 
 //Same as put this inside the provider array in app.module
 @Injectable({
@@ -19,7 +20,8 @@ export class AccountService {
   //The $ just to show that it is an observable
   currentUser$ = this.currentUserSource.asObservable();
 
-  constructor(private http:HttpClient) { }
+  //Automatically allow the user to connect to the hub when we set the user
+  constructor(private http:HttpClient, private presenceService: PresenceService) { }
 
   login(model: any)
   {
@@ -54,6 +56,8 @@ export class AccountService {
   }
   
 //set this information inside our account service.
+//Call this method whenever we login or we register, or when the user refresh the browser, 
+//when we get token from local storage
   setCurrentUser(user: User) {
     user.roles = [];
     //Call getDecodedToken method to get the roles of the user
@@ -65,12 +69,16 @@ export class AccountService {
     this.currentUserSource.next(user);
     //save the register user info into the local storage
     localStorage.setItem('user', JSON.stringify(user));
+    //Build the hub connection whenever we call this method
+    this.presenceService.createHubConnection(user);
   }
 
   //Remove the information from the localStorage after we logout 
   logout(){
     localStorage.removeItem('user');
     this.currentUserSource.next(null);
+    //Stop the connection when we logout
+    this.presenceService.stopHubConnection();
   }
 
   //split by the period that's inside our token and we're only interested in getting the middle parts

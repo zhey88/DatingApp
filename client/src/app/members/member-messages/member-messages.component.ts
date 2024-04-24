@@ -19,11 +19,10 @@ export class MemberMessagesComponent implements OnInit {
   //Use of @Input() because this is a child component of the memberDetail component
   //So to get the properties of username and message[]
   @Input() username?: string;
-  @Input() messages: Message[] = [];
   //For send message
   messageContent = '';
 
-  constructor(private messageService: MessageService) { }
+  constructor(public messageService: MessageService) { }
 
   ngOnInit(): void {
   }
@@ -31,12 +30,9 @@ export class MemberMessagesComponent implements OnInit {
   //For sending the message
   sendMessage() {
     if (!this.username) return;
-    this.messageService.sendMessage(this.username, this.messageContent).subscribe({
-      next: message => {
-        this.messages.push(message);
-        //Clear the message form after sending the message
-        this.messageForm?.reset();
-      }
+    //because we're returning a promise now, we can use then instead of subscribe.
+    this.messageService.sendMessage(this.username, this.messageContent).then(() => {
+      this.messageForm?.reset(); //reset the form
     })
   }
 

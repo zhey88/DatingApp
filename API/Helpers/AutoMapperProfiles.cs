@@ -34,6 +34,14 @@ namespace API.Helpers
                     .FirstOrDefault(x => x.IsMain).Url))
                 .ForMember(d => d.RecipientPhotoUrl, o => o.MapFrom(s => s.Recipient.Photos
                     .FirstOrDefault(x => x.IsMain).Url));
+
+            //we use auto mapper to convert the date from what it is now into a UTC date.
+            //So we could get the consistent date
+            //creating mapping for utcNow, MessageSent, in the Message.cs
+            CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+            //create another mapping for optional date times, DateRead
+            CreateMap<DateTime?, DateTime?>().ConvertUsing(d => d.HasValue ? 
+                DateTime.SpecifyKind(d.Value, DateTimeKind.Utc) : null);
         }
     }
 

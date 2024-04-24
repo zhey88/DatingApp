@@ -19,6 +19,11 @@ public class MessageRepository : IMessageRepository
         _mapper = mapper;
     }
 
+    public void AddGroup(Group group)
+    {
+        _context.Groups.Add(group);
+    }
+
     public void AddMessage(Message message)
     {
         _context.Messages.Add(message);
@@ -29,9 +34,31 @@ public class MessageRepository : IMessageRepository
         _context.Messages.Remove(message);
     }
 
+    public async Task<Connection> GetConnection(string connectionId)
+    {
+        return await _context.Connections.FindAsync(connectionId);
+    }
+
+    public async Task<Group> GetGroupForConnection(string connectionId)
+    {
+        return await _context.Groups
+            .Include(x => x.Connections)
+            .Where(x => x.Connections.Any(c => c.ConnectionId == connectionId))
+            //going to return the group for that particular connection
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<Message> GetMessage(int id)
     {
         return await _context.Messages.FindAsync(id);
+    }
+
+    public async Task<Group> GetMessageGroup(string groupName)
+    {
+        //eagerly load the connections
+        return await _context.Groups
+            .Include(x => x.Connections)
+            .FirstOrDefaultAsync(x => x.Name == groupName);
     }
 
     public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
@@ -64,11 +91,6 @@ public class MessageRepository : IMessageRepository
 
         return await PagedList<MessageDto>
             .CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize);
-    }
-
-    public Task<PagedList<MessageDto>> GetMessagesForUser()
-    {
-        throw new NotImplementedException();
     }
 
     public async Task<IEnumerable<MessageDto>> GetMessageThread
@@ -114,9 +136,9 @@ public class MessageRepository : IMessageRepository
         return _mapper.Map<IEnumerable<MessageDto>>(messages);
     }
 
-    public Task<IEnumerable<MessageDto>> GetMessageThread(int currentUserId, int recipientId)
+    public void RemoveConnection(Connection connection)
     {
-        throw new NotImplementedException();
+        _context.Connections.Remove(connection);
     }
 
     public async Task<bool> SaveAllAsync()
