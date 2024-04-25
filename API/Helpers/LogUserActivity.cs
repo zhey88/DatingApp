@@ -25,13 +25,13 @@ namespace API.Helpers
             var userId = resultContext.HttpContext.User.GetUserId();
             //to get access to our repository because we're going to update something for our user
             //get hold of our services as well so that we can update this particular property
-            var repo = resultContext.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
+            var uow = resultContext.HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
             //get a hold of our user
-            var user = await repo.GetUserByIdAsync(userId);
+            var user = await uow.UserRepository.GetUserByIdAsync(userId);
             //to update one property for the user that we get from our repository inside here
             user.LastActive = DateTime.UtcNow;
             //update our database
-            await repo.SaveAllAsync();
+            await uow.Complete();
         }
     }
 }

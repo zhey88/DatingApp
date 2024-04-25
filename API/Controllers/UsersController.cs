@@ -16,15 +16,14 @@ namespace API.Controllers
     [Authorize]
     public class UsersController : BaseApiController
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
-        public UsersController(IUserRepository userRepository, IMapper mapper, 
-                            IPhotoService photoService)
+        public UsersController(IUnitOfWork uow, IMapper mapper, IPhotoService photoService)
         {
             _photoService = photoService;
+            _uow = uow;
             _mapper = mapper;
-            _userRepository = userRepository;
         }
 
         //we then specify which roles we want to allow to access this particular endpoint.
@@ -38,24 +37,24 @@ namespace API.Controllers
         public async Task<ActionResult<PagedList<MemberDto>>> GetUsers(
                                 [FromQuery] UserParams userParams)
         {
-            //To get the current user info 
-            var currentUser = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            //To get the current user gender
+            var gener = await _uow.UserRepository.GetUserGender(User.GetUsername());
             //we're going to get our current user username to populate that particular field
-            userParams.CurrentUsername = currentUser.UserName;
+            userParams.CurrentUsername = User.GetUsername();
 
             //Now we want of course our users to be able to select which gender they want to view, but if they do
             //not make a selection or they've just loaded up the member's page, then we're going to send back a default
             // check to see if the string dot is null or empty for the user params gender
             if (string.IsNullOrEmpty(userParams.Gender))
-            //check if the user is male 
-            //if is male, we going to set the gender to female
-                userParams.Gender = currentUser.Gender == "male" ? "female" : "male";
+                //check if the user is male 
+                //if is male, we going to set the gender to female
+                userParams.Gender = gener == "male" ? "female" : "male";
 
             //Give us the list of users asynchronously
             //Call the getMembersAsync in the IUserRepository file
             //return OK to return our users as a list
             //we need to map the properties from MemberDto and PhotoDto, use of AutoMapper
-            var users = await _userRepository.GetMembersAsync(userParams);
+            var users = await _uow.UserRepository.GetMembersAsync(userParams);
             //Specify the user info we want to return by mapping the properties in the MemberDto
 
             //Now we also want to return our pagination information via pagination header
@@ -78,7 +77,7 @@ namespace API.Controllers
             //Give us the user information with the username
             //call the GetMmeberAsync in IUserRepository file
             //to Optimates the database query(stop quering the hash and salt password)
-            return await _userRepository.GetMemberAsync(username); 
+            return await _uow.UserRepository.GetMemberAsync(username); 
         }
 
          [HttpPut] //An update response, to update the users info
@@ -90,7 +89,7 @@ namespace API.Controllers
             //we do not need to return anything if the user updated their profile 
             //because it will be reflected to them directly
             //Call the GetUserByUsernameAsync method in the IUserRepository to get the user info
-            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            var user = await _uow.UserRepository.GetUserByUsernameAsync(User.GetUsername());
             
             //From our memberupdateDTO into our user when we retrieve this user from our repository
             //and Entity framework is now tracking this user and any updates to this user are going to be tracked by Entity framework
@@ -98,10 +97,10 @@ namespace API.Controllers
             //DTO into and overwriting the properties in that user, but it is not saved into the database yet
             _mapper.Map(memberUpdateDto, user);
 
-            //_userRepository.Update(user);
+            //_uow.UserRepository.Update(user);
 
             //To save the data into the database, ensure 
-            if (await _userRepository.SaveAllAsync()) return NoContent();
+            if (await _uow.Complete()) return NoContent();
             //if theres no changes to the database, return a bad request
             return BadRequest("Failed to update user");
         }
@@ -110,7 +109,7 @@ namespace API.Controllers
     [HttpPost("add-photo")]
     public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
     {
-        var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+        var user = await _uow.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
         //Check if theres a user
         if (user == null) return NotFound();
@@ -132,7 +131,7 @@ namespace API.Controllers
 
         user.Photos.Add(photo);
 
-        if (await _userRepository.SaveAllAsync())
+        if (await _uow.Complete())
         {
             //To tell the API where to find the newly created resource, 
             //refer to the GetUser method to map the username and the photo
@@ -149,7 +148,7 @@ namespace API.Controllers
     public async Task<ActionResult> SetMainPhoto(int photoId)
     {
         //To get the user
-        var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+        var user = await _uow.UserRepository.GetUserByUsernameAsync(User.GetUsername());
         //Make sure we have a user
         if (user == null) return NotFound();
         //Get hold of the photo from that user object
@@ -167,7 +166,7 @@ namespace API.Controllers
         //then we can set the new photo or the photo we're updating is main equal to true
         photo.IsMain = true;
 
-        if (await _userRepository.SaveAllAsync()) return NoContent();
+        if (await _uow.Complete()) return NoContent();
 
         return BadRequest("Problem setting main photo");
     }
@@ -178,7 +177,7 @@ namespace API.Controllers
     public async Task<ActionResult> DeletePhoto(int photoId)
     {
 
-        var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+        var user = await _uow.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
         var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
 
@@ -197,7 +196,7 @@ namespace API.Controllers
         //To remove the photo
         user.Photos.Remove(photo);
         //To save the changes
-        if (await _userRepository.SaveAllAsync()) return Ok();
+        if (await _uow.Complete()) return Ok();
 
         return BadRequest("Problem deleting photo");
     }    

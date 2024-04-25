@@ -11,15 +11,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+
     [Authorize]
     public class LikesController : BaseApiController
     {
-        private readonly IUserRepository _userRepository;
-        private readonly ILikesRepository _likesRepository;
-        public LikesController(IUserRepository userRepository, ILikesRepository likesRepository)
+        private readonly IUnitOfWork _uow;
+        public LikesController(IUnitOfWork uow)
         {
-            _likesRepository = likesRepository;
-            _userRepository = userRepository;
+            _uow = uow;
         }
 
         //As we're creating a new resource, when a user likes of a user that's going to 
@@ -30,15 +29,15 @@ namespace API.Controllers
             //this is the user that's going to be liking other user, 
             //call the GetUserId in the ClaimsPrincipleExtensions
             var sourceUserId = User.GetUserId();
-            var likedUser = await _userRepository.GetUserByUsernameAsync(username);
-            var sourceUser = await _likesRepository.GetUserWithLikes(sourceUserId);
+            var likedUser = await _uow.UserRepository.GetUserByUsernameAsync(username);
+            var sourceUser = await _uow.LikesRepository.GetUserWithLikes(sourceUserId);
 
             if (likedUser == null) return NotFound();
             //Disable the user to like themselves
             if (sourceUser.UserName == username) return BadRequest("You cannot like yourself");
 
             //To get the user that is been liked by the source user
-            var userLike = await _likesRepository.GetUserLike(sourceUserId, likedUser.Id);
+            var userLike = await _uow.LikesRepository.GetUserLike(sourceUserId, likedUser.Id);
 
             if (userLike != null) return BadRequest("You already like this user");
 
@@ -52,7 +51,7 @@ namespace API.Controllers
             sourceUser.LikedUsers.Add(userLike);
 
             //Save the changes in the database
-            if (await _userRepository.SaveAllAsync()) return Ok();
+            if (await _uow.Complete()) return Ok();
 
             return BadRequest("Failed to like user");
         }
@@ -68,7 +67,7 @@ namespace API.Controllers
 
             //using predicate, so we can choose whether or not to 
             //send back the liked users or liked by users
-            var users = await _likesRepository.GetUserLikes(likesParams);
+            var users = await _uow.LikesRepository.GetUserLikes(likesParams);
             //we're getting a pagination header
             Response.AddPaginationHeader(new PaginationHeader(users.CurrentPage, users.PageSize, 
                 users.TotalCount, users.TotalPages));

@@ -85,6 +85,13 @@ namespace API.Data
                 .SingleOrDefaultAsync(x => x.UserName == username); // x refers to the appUser
         }
 
+        //To get the user gender
+        public async Task<string> GetUserGender(string username)
+        {
+            return await _context.Users.Where(x => x.UserName == username)
+                .Select(x => x.Gender).FirstOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<AppUser>> GetUsersAsync()
         {
             return await _context.Users
@@ -92,14 +99,6 @@ namespace API.Data
             .ToListAsync();
         }
         
-        //in order to return a boolean, we just want to make sure that the changes are greater than zero
-        //If it's zero, then it's going to return false as in, nothing was saved into our database
-        public async Task<bool> SaveAllAsync()
-        {
-            //method is part of the Entity Framework and is used to 
-            //asynchronously save changes made in a database context to the underlying database
-            return await _context.SaveChangesAsync() > 0;
-        }
 
         //tells our Entity Framework Tracker that something has changed with the entity, the user
         //that we've passed in here, and we're not saving anything from this method at this point

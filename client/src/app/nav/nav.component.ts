@@ -37,7 +37,11 @@ export class NavComponent implements OnInit{
   login(){
     this.accountService.login(this.model).subscribe({
       //Navigate to member page after login
-      next: () => this.router.navigateByUrl('/members')
+      next: () =>{
+        this.router.navigateByUrl('/members');
+        //To clear the username and password in the fields after a user logout
+        this.model = {};
+      } 
     })
   }
 

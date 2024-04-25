@@ -96,10 +96,10 @@ public class MessageRepository : IMessageRepository
     public async Task<IEnumerable<MessageDto>> GetMessageThread
             (string currentUsername, string recipientUsername)
     {   //We need to get the messages for both sides of the conversation.
-        var messages = await _context.Messages
+        var query = _context.Messages
+        //if we're using projection, we don't need to eagerly load the other related entities
         //use thenInclude because the photos are a related entity for the app user
-            .Include(u => u.Sender).ThenInclude(p => p.Photos)
-            .Include(u => u.Recipient).ThenInclude(p => p.Photos)
+
             .Where(
                 //so we want to return messages where the recipient username is equal to currentUsername
                 //and The sender username is equal to the recipient username
@@ -111,38 +111,33 @@ public class MessageRepository : IMessageRepository
             )
 
             .OrderBy(m => m.MessageSent)
-            //Save in the memory
-            .ToListAsync();
+            .AsQueryable();
 
-        //get a list of the unread messages in memory and we're going to 
+
+        //get a list of the unread messages  from our query and we're going to 
         //take the opportunity to mark them as sent
-        var unreadMessages = messages.Where(m => m.DateRead == null
+        var unreadMessages = query.Where(m => m.DateRead == null
         //RecipientUsername == currentUsername because it is the recipient who will read them
-        //ToList() so that we no need to get them from database, we could just get them from memory
+        //ToList() so that we no need to get them from database, we could just get them from query
             && m.RecipientUsername == currentUsername).ToList();
 
         //Check if we have any unread messages
         if (unreadMessages.Any())
         {
             //mark the message as read as soon as it's received by the recipient
+            //unread messages to be updated with date read
             foreach (var message in unreadMessages)
             {
                 message.DateRead = DateTime.UtcNow;
             }
-
-            await _context.SaveChangesAsync();
         }
 
-        return _mapper.Map<IEnumerable<MessageDto>>(messages);
+        //So now the query is more cleaner, unnecessary info such as photo is not included
+        return await query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider).ToListAsync();
     }
 
     public void RemoveConnection(Connection connection)
     {
         _context.Connections.Remove(connection);
-    }
-
-    public async Task<bool> SaveAllAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
     }
 }

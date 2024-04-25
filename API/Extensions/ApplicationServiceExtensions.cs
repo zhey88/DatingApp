@@ -24,21 +24,19 @@ public static class ApplicationServiceExtensions
         services.AddCors();
         //build the service to be lifetime for the token
         services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
         services.AddScoped<IPhotoService, PhotoService>();
         //Call the LogUserActivity to update the last active property inside the user
         services.AddScoped<LogUserActivity>();
-        services.AddScoped<ILikesRepository, LikesRepository>();
-        services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddSignalR();
         //Did not use AddScoped, use Singleton so that
         //this dictionary to be available application wide 
         //for every user that connects to our service
         //Also, it will not be destoryed once the HTTP request has been completed
         services.AddSingleton<PresenceTracker>();
-
+        //UnitOfWork will get all the repositories 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
 }
